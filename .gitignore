@@ -1,1 +1,7 @@
 .idea/
+MANIFEST
+build/
+dist/
+research/__pycache__/
+research/coding/__pycache__/
+research/index/__pycache__/

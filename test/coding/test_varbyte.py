@@ -5,7 +5,7 @@ import research.coding.varbyte as varbyte
 
 class VarbyteTest(unittest.TestCase):
 
-    def testDecode(self):
+    def test_decode(self):
 
         decoder = varbyte.Decoder(io.BytesIO(b'\x81'))
         with self.subTest(decoder=decoder, expected=1):
@@ -22,7 +22,7 @@ class VarbyteTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 decoder.decode()
 
-    def testEncode(self):
+    def test_encode(self):
 
         with self.subTest(encoded=1):
             b = io.BytesIO()
