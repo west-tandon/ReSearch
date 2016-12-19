@@ -1,10 +1,10 @@
-import unittest
 import shutil
 import tempfile
-from research.coding.varbyte import Encoder
-from research.index.forward import ForwardIndex
-import research.index.forward as forward
+import unittest
 from os import path
+
+from research.coding.varbyte import Encoder
+from research.index import IndexFactory
 
 
 class ForwardIndexReadTest(unittest.TestCase):
@@ -18,6 +18,8 @@ class ForwardIndexReadTest(unittest.TestCase):
         f = open(self.meta_path, 'w')
         f.write('''
             {{
+                "type" : "research.index.forward.ForwardIndex",
+                "name" : "fi",
                 "paths": {{
                     "doc_info": "{0}",
                     "collection": "{1}"
@@ -43,7 +45,7 @@ class ForwardIndexReadTest(unittest.TestCase):
         shutil.rmtree(self.test_dir)
 
     def test_forward_index(self):
-        forward_index = ForwardIndex.load(self.meta_path)
+        forward_index = IndexFactory.from_path(self.meta_path)
         reader = forward_index.reader()
 
         with self.subTest(document=1):
