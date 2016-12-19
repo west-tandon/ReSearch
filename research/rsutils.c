@@ -17,7 +17,8 @@ rsutils_flip_most_significant_bits(PyObject *self, PyObject *args)
     int n;
     while ((n = read(in, buffer, BUFFER_SIZE)) != 0) {
         if (n == -1) return NULL;
-        for (int i = 0; i < n; i++) buffer[i] ^= 0x80;
+        int i;
+        for (i = 0; i < n; i++) buffer[i] ^= 0x80;
         if (write(out, buffer, n) == -1) return NULL;
     }
 
