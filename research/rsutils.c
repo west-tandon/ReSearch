@@ -1,5 +1,7 @@
 #include <Python.h>
 
+static const int BUFFER_SIZE = 1024 * 1024;
+
 static PyObject *
 rsutils_flip_most_significant_bits(PyObject *self, PyObject *args)
 {
@@ -11,12 +13,12 @@ rsutils_flip_most_significant_bits(PyObject *self, PyObject *args)
     int in = PyObject_AsFileDescriptor(input_stream);
     int out = PyObject_AsFileDescriptor(output_stream);
 
-    unsigned char c;
+    unsigned char buffer[BUFFER_SIZE];
     int n;
-    while ((n = read(in, &c, sizeof(c))) != 0) {
+    while ((n = read(in, buffer, BUFFER_SIZE)) != 0) {
         if (n == -1) return NULL;
-        c ^= 0x80;
-        if (write(out, &c, sizeof(c)) == -1) return NULL;
+        for (int i = 0; i < n; i++) buffer[i] ^= 0x80;
+        if (write(out, buffer, n) == -1) return NULL;
     }
 
     if (close(in) == -1) return NULL;
