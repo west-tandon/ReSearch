@@ -28,7 +28,7 @@ void log_process(off_t processed_bytes, off_t total_bytes)
     char processed[10], total[10];
     readable_fs(processed_bytes, processed);
     readable_fs(total_bytes, total);
-    printf("Processed %s/%s, %ld%%", processed, total, (100 * processed_bytes) / total_bytes);
+    fprintf(stderr, "Processed %s/%s, %ld%%\n", processed, total, (100 * processed_bytes) / total_bytes);
 }
 
 static PyObject *
