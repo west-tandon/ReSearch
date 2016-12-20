@@ -4,7 +4,7 @@ import unittest
 from os import path
 
 from research.coding.varbyte import Encoder
-from research.index import IndexFactory
+from research.index.common import IndexFactory
 
 
 class ForwardIndexReadTest(unittest.TestCase):
@@ -14,6 +14,7 @@ class ForwardIndexReadTest(unittest.TestCase):
         self.meta_path = path.join(self.test_dir, 'metadata')
         self.doc_info_path = path.join(self.test_dir, 'doc_info')
         self.collection_path = path.join(self.test_dir, 'collection')
+        self.terms_path = path.join(self.test_dir, 'terms')
 
         f = open(self.meta_path, 'w')
         f.write('''
@@ -22,15 +23,24 @@ class ForwardIndexReadTest(unittest.TestCase):
                 "name" : "fi",
                 "paths": {{
                     "doc_info": "{0}",
-                    "collection": "{1}"
+                    "collection": "{1}",
+                    "terms": "{2}"
                 }}
             }}
-        '''.format(self.doc_info_path, self.collection_path))
+        '''.format(self.doc_info_path, self.collection_path, self.terms_path))
         f.close()
 
         f = open(self.doc_info_path, 'w')
         f.writelines(["Document1 0 0 3 3\n",
                       "Document2 1 3 3 3\n"])
+        f.close()
+
+        f = open(self.terms_path, 'w')
+        f.writelines(["0\n",
+                      "1\n",
+                      "2\n",
+                      "3\n",
+                      "4\n"])
         f.close()
 
         f = open(self.collection_path, 'bw')
@@ -67,5 +77,48 @@ class ForwardIndexReadTest(unittest.TestCase):
             self.assertEqual(document.next_term(), 4)
             self.assertEqual(document.next_term(), 2)
             self.assertEqual(document.next_term(), None)
+
+        self.assertEqual(reader.next_document(), None)
+
+    def test_pruning(self):
+
+        meta_path = path.join(self.test_dir, 'f-metadata')
+        doc_info_path = path.join(self.test_dir, 'f-doc_info')
+        collection_path = path.join(self.test_dir, 'f-collection')
+        terms_path = path.join(self.test_dir, 'f-terms')
+        f = open(meta_path, 'w')
+        f.write('''
+                    {{
+                        "type" : "research.index.forward.ForwardIndex",
+                        "name" : "ofi",
+                        "paths": {{
+                            "doc_info": "{0}",
+                            "collection": "{1}",
+                            "terms": "{2}"
+                        }}
+                    }}
+                '''.format(doc_info_path, collection_path, terms_path))
+        f.close()
+
+        forward_index = IndexFactory.from_path(self.meta_path)
+        output_index = IndexFactory.from_path(meta_path)
+
+        class TermPruner:
+            def test(self, term):
+                for ch in term:
+                    if ord(ch) > ord("2"):
+                        return False
+                return True
+
+        forward_index.prune(TermPruner(), output_index)
+        reader = output_index.reader()
+
+        document = reader.next_document()
+        self.assertEqual(document.title, "Document2")
+        self.assertEqual(document.doc_id, 0)
+        self.assertEqual(document.count, 2)
+        self.assertEqual(document.next_term(), 0)
+        self.assertEqual(document.next_term(), 1)
+        self.assertEqual(document.next_term(), None)
 
         self.assertEqual(reader.next_document(), None)
