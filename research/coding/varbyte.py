@@ -24,7 +24,7 @@ class Encoder:
 
     def encode(self, n):
         if n < 0:
-            raise ValueError("encoded number bust be non-negative")
+            raise ValueError("encoded number bust be non-negative, but {0} given".format(n))
         buffer = bytearray(8)
         p = 8
         while n > 0b01111111:
