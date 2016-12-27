@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser(description='Decode list of byte-encoded values
 parser.add_argument('format', type=str)
 parser.add_argument('input', nargs='*', type=argparse.FileType('br'), default=sys.stdin)
 parser.add_argument('--output', '-o', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-parser.add_argument('--big-endian', '-b', nargs='?', type=bool, default=False)
+parser.add_argument('--delimiter', '-d', type=str, default='\t')
 args = parser.parse_args()
 
 
@@ -39,7 +39,7 @@ x = [decoder.decode() for decoder in decoders]
 while x[0] is not None:
     for v in x:
         args.output.write(str(v))
-        args.output.write('\t')
+        args.output.write(args.delimiter)
     args.output.write('\n')
     x = [decoder.decode() for decoder in decoders]
 
