@@ -15,5 +15,4 @@ x = decoder.decode()
 while x is not None:
     print(str(x))
     x = decoder.decode()
-# /home/elshize/IdeaProjects/mg4j-nyu/src/test/resources/clusters/gov2C.minscore
 
