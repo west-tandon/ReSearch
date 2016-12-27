@@ -1,5 +1,6 @@
 import argparse
 
+import research.utils as utils
 from research.index.common import IndexFactory
 
 parser = argparse.ArgumentParser(description='Flip the most significant bit in every byte of the file.')
@@ -15,4 +16,4 @@ args = parser.parse_args()
 input_index = IndexFactory.from_path(args.index)
 output_index = IndexFactory.from_path(args.output)
 
-input_index.prune(args.pruner, output_index)
+input_index.prune(utils.get_object_of(args.pruner), output_index)

@@ -39,7 +39,7 @@ class Metadata:
         if Metadata.f_coding not in properties:
             self.coder_factory = research.coding.varbyte.Factory
         else:
-            self.coder_factory = research.utils.get_class_of(properties[Metadata.f_coding])()
+            self.coder_factory = research.utils.get_class_of(properties[Metadata.f_coding]).Factory()
 
         if Metadata.f_path not in properties:
             raise_property_not_found(Metadata.f_path)

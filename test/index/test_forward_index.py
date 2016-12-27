@@ -21,6 +21,7 @@ class ForwardIndexReadTest(unittest.TestCase):
             {{
                 "type" : "research.index.forward.ForwardIndex",
                 "name" : "fi",
+                "coding": "research.coding.varbyte",
                 "paths": {{
                     "doc_info": "{0}",
                     "collection": "{1}",
