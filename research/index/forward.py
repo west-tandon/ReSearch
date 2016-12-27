@@ -1,7 +1,11 @@
 import io
+import logging
 
 from research.index.common import Metadata
 from research.index.common import raise_property_not_found
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 class ForwardIndex:
@@ -16,6 +20,9 @@ class ForwardIndex:
 
     def prune(self, term_pruner, output_index):
 
+        logger.info("Pruning index {0} with pruner {1}".format(self.metadata.name, type(term_pruner).__name__))
+
+        logger.info("Processing term file")
         with open(self.metadata.terms_path) as input_term_file:
             with open(output_index.metadata.terms_path, "w") as output_term_file:
 
@@ -27,6 +34,7 @@ class ForwardIndex:
                 for i in range(1, len(offsets)):
                     offsets[i] += offsets[i - 1]
 
+        logger.info("Pruning documents")
         reader = self.reader()
         writer = output_index.writer()
 
@@ -46,7 +54,8 @@ class ForwardIndex:
                 term_id = document.next_term()
 
             if term_count > 0:
-                writer.write_document_info(document.title, document.doc_id - doc_offset, byte_offset, byte_count, term_count)
+                writer.write_document_info(document.title, document.doc_id - doc_offset, byte_offset, byte_count,
+                                           term_count)
             else:
                 doc_offset += 1
 
