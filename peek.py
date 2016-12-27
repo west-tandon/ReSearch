@@ -1,18 +1,45 @@
 import argparse
 import sys
 
-import research.coding.double as double
+import research.coding.double
 
 parser = argparse.ArgumentParser(description='Decode list of byte-encoded values and display them in consecutive lines.')
-# parser.add_argument('coding', required=True, type=argparse.FileType('br'))
-parser.add_argument('input', nargs='?', type=argparse.FileType('br'), default=sys.stdin)
+parser.add_argument('format', type=str)
+parser.add_argument('input', nargs='*', type=argparse.FileType('br'), default=sys.stdin)
 parser.add_argument('--output', '-o', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
 parser.add_argument('--big-endian', '-b', nargs='?', type=bool, default=False)
 args = parser.parse_args()
 
-decoder = double.Decoder(args.input,big_endian=args.big_endian)
-x = decoder.decode()
-while x is not None:
-    print(str(x))
-    x = decoder.decode()
+
+class StringDecoder:
+    def __init__(self, stream):
+        self.stream = stream
+
+    def decode(self):
+        line = self.stream.readline()
+        if line == b"":
+            return None
+        else:
+            return line[:-1].decode("UTF-8")
+
+
+def get_decoder(file, coding):
+    if coding.lower() == 'd':
+        return research.coding.double.Decoder(file, big_endian=coding.isupper())
+    if coding.lower() == 's':
+        return StringDecoder(file)
+    else:
+        raise ValueError('invalid coding format: {0}'.format(coding))
+
+decoders = [
+    get_decoder(file, coding)
+    for (file, coding) in zip(args.input, list(args.format))
+]
+x = [decoder.decode() for decoder in decoders]
+while x[0] is not None:
+    for v in x:
+        args.output.write(str(v))
+        args.output.write('\t')
+    args.output.write('\n')
+    x = [decoder.decode() for decoder in decoders]
 
