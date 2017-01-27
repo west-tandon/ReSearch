@@ -38,10 +38,14 @@ decoders = [
     for (file, coding) in zip(args.input, list(args.format))
 ]
 x = [decoder.decode() for decoder in decoders]
-while x[0] is not None:
-    for v in x:
-        args.output.write(str(v))
-        args.output.write(args.delimiter)
-    args.output.write('\n')
-    x = [decoder.decode() for decoder in decoders]
+try:
+    while x[0] is not None:
+        for v in x:
+            args.output.write(str(v))
+            args.output.write(args.delimiter)
+        args.output.write('\n')
+        x = [decoder.decode() for decoder in decoders]
+except(BrokenPipeError):
+    exit()
 
+args.output.close()
