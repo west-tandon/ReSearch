@@ -6,7 +6,7 @@ PEEK=rspeek
 FLIP=rsflip
 
 build: *
-	virtualenv $(VENV_DIR)
+	virtualenv -p /usr/bin/python3 $(VENV_DIR)
 	$(VENV_DIR)/bin/python setup.py install
 
 .PHONY: install
