@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 import argparse
 import sys
 
@@ -33,19 +31,21 @@ def get_decoder(file, coding):
     else:
         raise ValueError('invalid coding format: {0}'.format(coding))
 
-decoders = [
-    get_decoder(file, coding)
-    for (file, coding) in zip(args.input, list(args.format))
-]
-x = [decoder.decode() for decoder in decoders]
 try:
+    decoders = [
+        get_decoder(file, coding)
+        for (file, coding) in zip(args.input, list(args.format))
+    ]
+    x = [decoder.decode() for decoder in decoders]
     while x[0] is not None:
         for v in x:
             args.output.write(str(v))
             args.output.write(args.delimiter)
         args.output.write('\n')
         x = [decoder.decode() for decoder in decoders]
-except(BrokenPipeError):
+except BrokenPipeError:
+    exit()
+except KeyboardInterrupt:
     exit()
 
 args.output.close()

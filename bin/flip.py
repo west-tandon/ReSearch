@@ -1,4 +1,4 @@
-import rsutils
+import research.utils
 import argparse
 import sys
 
@@ -7,4 +7,4 @@ parser.add_argument('input', nargs='?', type=argparse.FileType('br'), default=sy
 parser.add_argument('--output', '-o', nargs='?', type=argparse.FileType('bw'), default=sys.stdout)
 args = parser.parse_args()
 
-rsutils.flip_most_significant_bits(args.input, args.output)
+research.utils.flip_most_significant_bits(args.input, args.output)
