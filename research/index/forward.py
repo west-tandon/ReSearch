@@ -3,6 +3,7 @@ import logging
 
 from research.index.common import Metadata
 from research.index.common import raise_property_not_found
+from research.lexicon import ArrayLexicon
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -45,13 +46,13 @@ class ForwardIndex:
 
             term_count = 0
             byte_count = 0
-            term_id = document.next_term()
+            term_id = document.next_term_id()
             while term_id is not None:
                 if (term_id > 0 and offsets[term_id] == offsets[term_id - 1]) \
                         or (term_id == 0 and offsets[term_id] == 0):
                     byte_count += writer.write_term_id(term_id - offsets[term_id])
                     term_count += 1
-                term_id = document.next_term()
+                term_id = document.next_term_id()
 
             if term_count > 0:
                 writer.write_document_info(document.title, document.doc_id - doc_offset, byte_offset, byte_count,
@@ -94,14 +95,33 @@ class ForwardIndexReader:
         self.doc_info_reader = io.open(metadata.doc_info_path, 'r')
         self.term_stream = io.open(metadata.collection_path, 'br')
         self.decoder = metadata.coder_factory.decoder(self.term_stream)
+        self.lexicon = ArrayLexicon(metadata.terms_path)
+        self.last_doc = None
+
+    @staticmethod
+    def parse_meta(meta_line):
+        fields = meta_line.split()
+        if len(fields) != 5:
+            raise ValueError("expected 5 fields in document meta file, but %d found" % len(fields))
+        return fields[0], int(fields[1]), int(fields[2]), int(fields[3]), int(fields[4])
 
     def next_document(self):
+        if self.last_doc is not None:
+            self.last_doc.flush()
         meta_line = self.doc_info_reader.readline()
         if meta_line == "":
             return None
         else:
             (title, doc_id, offset, size, count) = Document.parse_meta(meta_line)
-            return Document(title, doc_id, count, self.decoder)
+            self.last_doc = Document(title, doc_id, count, self.decoder, self.lexicon)
+            return self.last_doc
+
+    def skip(self, n):
+        for i in range(n):
+            meta_line = self.doc_info_reader.readline()
+            if meta_line != "":
+                (title, doc_id, offset, size, count) = Document.parse_meta(meta_line)
+                self.term_stream.seek(offset)
 
     def close(self):
         self.doc_info_reader.close()
@@ -126,19 +146,29 @@ class ForwardIndexWriter:
 
 
 class Document:
-    def __init__(self, title, doc_id, count, decoder):
+    def __init__(self, title, doc_id, count, decoder, lexicon):
         self.title = title
         self.doc_id = doc_id
         self.count = count
         self.remaining = count
         self.decoder = decoder
+        self.lexicon = lexicon
 
-    def next_term(self):
+    def next_term_id(self):
         if self.remaining == 0:
             return None
         else:
             self.remaining -= 1
             return self.decoder.decode()
+
+    def next_term(self):
+        term_id = self.next_term_id()
+        return self.lexicon[term_id] if term_id is not None else None
+
+    def flush(self):
+        while self.remaining > 0:
+            self.next_term_id()
+
 
     @staticmethod
     def parse_meta(meta_line):
