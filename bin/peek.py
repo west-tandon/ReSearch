@@ -2,6 +2,7 @@ import argparse
 import sys
 
 import research.coding.double
+import research.coding.varbyte
 
 parser = argparse.ArgumentParser(description='Decode list of byte-encoded values and display them in consecutive lines.')
 parser.add_argument('format', type=str)
@@ -28,6 +29,8 @@ def get_decoder(file, coding):
         return research.coding.double.Decoder(file, big_endian=coding.isupper())
     if coding.lower() == 's':
         return StringDecoder(file)
+    if coding.lower() == 'v':
+        return research.coding.varbyte.Decoder(file)
     else:
         raise ValueError('invalid coding format: {0}'.format(coding))
 
