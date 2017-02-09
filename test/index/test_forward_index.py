@@ -64,22 +64,68 @@ class ForwardIndexReadTest(unittest.TestCase):
             self.assertEqual(document.title, "Document1")
             self.assertEqual(document.doc_id, 0)
             self.assertEqual(document.count, 3)
-            self.assertEqual(document.next_term(), 0)
-            self.assertEqual(document.next_term(), 1)
-            self.assertEqual(document.next_term(), 2)
-            self.assertEqual(document.next_term(), None)
+            self.assertEqual(document.next_term_id(), 0)
+            self.assertEqual(document.next_term_id(), 1)
+            # Intentionally leaving out the next lines
+            # self.assertEqual(document.next_term_id(), 2)
+            # self.assertEqual(document.next_term_id(), None)
 
         with self.subTest(document=2):
             document = reader.next_document()
             self.assertEqual(document.title, "Document2")
             self.assertEqual(document.doc_id, 1)
             self.assertEqual(document.count, 3)
-            self.assertEqual(document.next_term(), 3)
-            self.assertEqual(document.next_term(), 4)
-            self.assertEqual(document.next_term(), 2)
-            self.assertEqual(document.next_term(), None)
+            self.assertEqual(document.next_term_id(), 3)
+            self.assertEqual(document.next_term_id(), 4)
+            self.assertEqual(document.next_term_id(), 2)
+            self.assertEqual(document.next_term_id(), None)
 
         self.assertEqual(reader.next_document(), None)
+
+    def test_forward_index_read_terms(self):
+        forward_index = IndexFactory.from_path(self.meta_path)
+        reader = forward_index.reader()
+
+        with self.subTest(document=1):
+            document = reader.next_document()
+            self.assertEqual(document.next_term(), "0")
+            self.assertEqual(document.next_term(), "1")
+            self.assertEqual(document.next_term(), "2")
+            self.assertEqual(document.next_term(), None)
+
+        with self.subTest(document=2):
+            document = reader.next_document()
+            self.assertEqual(document.next_term(), "3")
+            self.assertEqual(document.next_term(), "4")
+            self.assertEqual(document.next_term(), "2")
+            self.assertEqual(document.next_term(), None)
+
+    def test_forward_index_skip_first(self):
+        forward_index = IndexFactory.from_path(self.meta_path)
+        reader = forward_index.reader()
+
+        reader.skip(1)
+        document = reader.next_document()
+        self.assertEqual(document.title, "Document2")
+        self.assertEqual(document.doc_id, 1)
+        self.assertEqual(document.count, 3)
+
+    def test_forward_index_skip_second(self):
+        forward_index = IndexFactory.from_path(self.meta_path)
+        reader = forward_index.reader()
+
+        document = reader.next_document()
+        reader.skip(1)
+        document = reader.next_document()
+        self.assertEqual(document, None)
+
+    def test_forward_index_skip_all(self):
+        forward_index = IndexFactory.from_path(self.meta_path)
+        reader = forward_index.reader()
+
+        reader.skip(2)
+        document = reader.next_document()
+        self.assertEqual(document, None)
 
     def test_pruning(self):
 
@@ -118,8 +164,8 @@ class ForwardIndexReadTest(unittest.TestCase):
         self.assertEqual(document.title, "Document2")
         self.assertEqual(document.doc_id, 0)
         self.assertEqual(document.count, 2)
-        self.assertEqual(document.next_term(), 0)
-        self.assertEqual(document.next_term(), 1)
-        self.assertEqual(document.next_term(), None)
+        self.assertEqual(document.next_term_id(), 0)
+        self.assertEqual(document.next_term_id(), 1)
+        self.assertEqual(document.next_term_id(), None)
 
         self.assertEqual(reader.next_document(), None)
