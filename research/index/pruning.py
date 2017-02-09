@@ -1,3 +1,6 @@
+from nltk.corpus import stopwords
+
+
 class BigUnicodePruner:
 
     def test(self, term):
@@ -6,12 +9,11 @@ class BigUnicodePruner:
                 return False
         return True
 
-# TODO:
-# class PrunerBuilder:
-#
-#     def addTermPruner(self, termPruner):
-#         pass
-#
-#     def addCharacterPrunner(self, characterPrunner):
-#         pass
+
+class EnglishStopWordsPruner:
+    def __init__(self):
+        self.stopwords = set(stopwords.words('english'))
+
+    def test(self, term):
+        return term not in self.stopwords
 

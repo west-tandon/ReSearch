@@ -11,5 +11,7 @@ setup(name='ReSearch',
       ext_modules=[research_c_utils],
       install_requires=[
           'argparse',
-          'importlib'
+          'importlib',
+          'nltk',
+          'numpy'
       ])
