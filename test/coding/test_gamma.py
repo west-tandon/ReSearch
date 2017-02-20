@@ -8,7 +8,7 @@ import research.coding.gamma as gamma
 
 class GammaTest(unittest.TestCase):
 
-    def test_encode(self):
+    def test_decode(self):
 
         bits = bt.Bits(bin='1')
         with self.subTest(input=bits):
@@ -38,7 +38,7 @@ class GammaTest(unittest.TestCase):
             self.assertEqual(decoder.decode(), 3)
             self.assertEqual(decoder.decode(), 17)
 
-    def test_decode(self):
+    def test_encode(self):
 
         n = 0
         with self.subTest(input=n):
@@ -62,4 +62,5 @@ class GammaTest(unittest.TestCase):
             for n in numbers:
                 encoder.encode(n)
                 encoder.flush()
+            encoder.close()
             self.assertEqual(b.getvalue(), io.BytesIO(bt.Bits(bin='1010011000010001').tobytes()).getvalue())
