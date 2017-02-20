@@ -13,5 +13,6 @@ setup(name='ReSearch',
           'argparse',
           'importlib',
           'nltk',
-          'numpy'
+          'numpy',
+          'bitstring'
       ])
