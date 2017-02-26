@@ -1,6 +1,7 @@
 import io
 import logging
 
+import research.coding.varbyte
 from research.index.common import Metadata
 from research.index.common import raise_property_not_found
 from research.lexicon import ArrayLexicon
@@ -73,6 +74,16 @@ class ForwardIndexMetadata(Metadata):
         super(ForwardIndexMetadata, self).__init__(properties)
 
         assert properties[Metadata.f_type] == "{0}.{1}".format(ForwardIndex.__module__, ForwardIndex.__name__)
+
+        if Metadata.f_coding not in properties:
+            self.coder_factory = research.coding.varbyte.Factory
+        else:
+            self.coder_factory = research.utils.get_class_of(properties[Metadata.f_coding]).Factory()
+
+        if Metadata.f_path not in properties:
+            raise_property_not_found(Metadata.f_path)
+        else:
+            self.paths = properties[Metadata.f_path]
 
         if ForwardIndexMetadata.f_doc_info not in self.paths:
             raise_property_not_found(ForwardIndexMetadata.f_doc_info)
