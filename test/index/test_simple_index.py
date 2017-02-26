@@ -8,7 +8,7 @@ from research.index.common import IndexFactory, write_header
 from research.index.simple import *
 
 
-def test_index(test_dir) -> Index:
+def get_index(test_dir) -> Index:
 
     with open(path.join(test_dir, 'simple.terms'), 'w') as f:
         f.write("a\n")
@@ -81,7 +81,7 @@ class IndexReaderTest(unittest.TestCase):
 
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
-        self.index = test_index(self.test_dir)
+        self.index = get_index(self.test_dir)
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)
