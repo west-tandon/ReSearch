@@ -5,6 +5,7 @@ BIN=/usr/local/bin
 PEEK=rspeek
 FLIP=rsflip
 READD=rsreadd
+FINDD=rsfindd
 
 build: *
 	virtualenv -p /usr/bin/python3 $(VENV_DIR)
@@ -24,6 +25,9 @@ install:
 	# rsreadd
 	echo "$(INSTALL_DIR)/bin/python $(INSTALL_DIR)/bin/readd.py \$$@" > $(BIN)/$(READD)
 	chmod a+x $(BIN)/$(READD)
+	# rsreadd
+	echo "$(INSTALL_DIR)/bin/python $(INSTALL_DIR)/bin/findd.py \$$@" > $(BIN)/$(FINDD)
+	chmod a+x $(BIN)/$(FINDD)
 
 .PHONY: uninstall
 uninstall:
