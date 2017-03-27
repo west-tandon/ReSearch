@@ -37,3 +37,6 @@ class ArrayLexicon(AbstractLexicon):
             return self.terms[i][1]
         else:
             return None
+
+    def count(self):
+        return len(self.terms)

@@ -1,5 +1,8 @@
 import json
 import os.path
+import struct
+
+import typing.io
 
 import research.coding.varbyte
 import research.utils
@@ -36,16 +39,6 @@ class Metadata:
         else:
             self.dir = properties[Metadata.f_dir]
 
-        if Metadata.f_coding not in properties:
-            self.coder_factory = research.coding.varbyte.Factory
-        else:
-            self.coder_factory = research.utils.get_class_of(properties[Metadata.f_coding]).Factory()
-
-        if Metadata.f_path not in properties:
-            raise_property_not_found(Metadata.f_path)
-        else:
-            self.paths = properties[Metadata.f_path]
-
 
 class Index:
     def __init__(self, properties):
@@ -69,13 +62,25 @@ class IndexMetadata(Metadata):
 
     def __init__(self, properties):
         super(IndexMetadata, self).__init__(properties)
-        assert properties[Metadata.f_type] == "{0}.{1}".format(Index.__module__, Index.__name__)
+        # assert properties[Metadata.f_type] == "{0}.{1}".format(Index.__module__, Index.__name__)
+
+    def docs_path(self):
+        return os.path.join(self.dir, self.name + ".docs")
+
+    def docs_offsets_path(self):
+        return os.path.join(self.dir, self.name + ".docs#offsets")
 
     def counts_path(self):
-        os.path.join(self.dir, ".counts")
+        return os.path.join(self.dir, self.name + ".counts")
 
     def counts_offsets_path(self):
-        os.path.join(self.dir, ".counts#offsets")
+        return os.path.join(self.dir, self.name + ".counts#offsets")
+
+    def frequencies_path(self):
+        return os.path.join(self.dir, self.name + ".frequencies")
+
+    def terms_path(self):
+        return os.path.join(self.dir, self.name + ".terms")
 
 
 class IndexFactory:
@@ -92,3 +97,53 @@ class IndexFactory:
         if Metadata.f_type not in properties:
             raise_property_not_found(Metadata.f_type)
         return research.utils.get_class_of(properties[Metadata.f_type])(properties)
+
+
+def write_header(header, stream: typing.io.BinaryIO) -> int:
+    """
+    Write a header object to a byte stream.
+    :param header: a JSON object describing properties of the file, e.g., encoding
+    :param stream: a byte stream to write the header to
+    :return: the number of bytes written
+    """
+    encoded = json.dumps(header).encode()
+    encoded_len = len(encoded)
+    stream.write(encoded_len.to_bytes(4, byteorder='big'))
+    stream.write(encoded)
+    return encoded_len + 4
+
+
+def read_header(stream: typing.io.BinaryIO):
+    """
+    Read a header object from a byte stream.
+    :param stream: a byte stream to read from
+    :return: (<a JSON object describing properties of the file, e.g., encoding>,
+              <the number of bytes written>)
+    """
+    length = struct.unpack('>i', stream.read(4))[0]
+    return json.loads(stream.read(length).decode()), length + 4
+
+
+def load_numbers(file_path: str) -> [int]:
+    """
+    Load numbers from a file to a list.
+    :param file_path: the path to an offset file
+    :return: a list of offsets
+    """
+    with open(file_path, 'br') as f:
+        header, l = read_header(f)
+        assert Metadata.f_coding in header, \
+            "File {0} metadata does not contain encoding information".format(file_path)
+        assert 'count' in header, \
+            "File {0} metadata does not contain the count".format(file_path)
+        decoder = research.utils.get_class_of(header[Metadata.f_coding]).Decoder(f)
+        return [decoder.decode() for i in range(header['count'])]
+
+
+def getp(header, property: str):
+    assert property in header, "could not found property {0} in the header".format(property)
+    return header[property]
+
+
+def resolve_decoder(header, stream):
+    return research.utils.get_class_of(getp(header, Metadata.f_coding)).Decoder(stream)
