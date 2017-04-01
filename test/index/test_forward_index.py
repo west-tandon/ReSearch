@@ -127,6 +127,75 @@ class ForwardIndexReadTest(unittest.TestCase):
         document = reader.next_document()
         self.assertEqual(document, None)
 
+    def test_forward_index_find_by_title(self):
+
+        with self.subTest(title="Document1"):
+            forward_index = IndexFactory.from_path(self.meta_path)
+            reader = forward_index.reader()
+            title = "Document1"
+            document = reader.find_by_title(title)
+            self.assertEqual(document.title, "Document1")
+            self.assertEqual(document.doc_id, 0)
+            self.assertEqual(document.count, 3)
+            self.assertEqual(document.next_term_id(), 0)
+            self.assertEqual(document.next_term_id(), 1)
+            self.assertEqual(document.next_term_id(), 2)
+            self.assertEqual(document.next_term_id(), None)
+
+        with self.subTest(title="Document2"):
+            forward_index = IndexFactory.from_path(self.meta_path)
+            reader = forward_index.reader()
+            title = "Document2"
+            document = reader.find_by_title(title)
+            self.assertEqual(document.title, "Document2")
+            self.assertEqual(document.doc_id, 1)
+            self.assertEqual(document.count, 3)
+            self.assertEqual(document.next_term_id(), 3)
+            self.assertEqual(document.next_term_id(), 4)
+            self.assertEqual(document.next_term_id(), 2)
+            self.assertEqual(document.next_term_id(), None)
+
+        with self.subTest(title="Document3"):
+            forward_index = IndexFactory.from_path(self.meta_path)
+            reader = forward_index.reader()
+            title = "Document3"
+            document = reader.find_by_title(title)
+            self.assertIsNone(document)
+
+    def test_forward_index_find_by_id(self):
+
+        with self.subTest(id=0):
+            forward_index = IndexFactory.from_path(self.meta_path)
+            reader = forward_index.reader()
+            document = reader.find_by_id(id=0)
+            self.assertEqual(document.title, "Document1")
+            self.assertEqual(document.doc_id, 0)
+            self.assertEqual(document.count, 3)
+            self.assertEqual(document.next_term_id(), 0)
+            self.assertEqual(document.next_term_id(), 1)
+            self.assertEqual(document.next_term_id(), 2)
+            self.assertEqual(document.next_term_id(), None)
+
+        with self.subTest(id=1):
+            forward_index = IndexFactory.from_path(self.meta_path)
+            reader = forward_index.reader()
+            document = reader.find_by_id(id=1)
+            self.assertEqual(document.title, "Document2")
+            self.assertEqual(document.doc_id, 1)
+            self.assertEqual(document.count, 3)
+            self.assertEqual(document.next_term_id(), 3)
+            self.assertEqual(document.next_term_id(), 4)
+            self.assertEqual(document.next_term_id(), 2)
+            self.assertEqual(document.next_term_id(), None)
+
+        with self.subTest(id=2):
+            forward_index = IndexFactory.from_path(self.meta_path)
+            reader = forward_index.reader()
+            document = reader.find_by_id(id=2)
+            self.assertIsNone(document)
+
+
+
     def test_pruning(self):
 
         meta_path = path.join(self.test_dir, 'f-metadata')

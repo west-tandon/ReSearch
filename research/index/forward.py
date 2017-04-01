@@ -127,6 +127,26 @@ class ForwardIndexReader:
             self.last_doc = Document(title, doc_id, count, self.decoder, self.lexicon)
             return self.last_doc
 
+    def find_by_title(self, title):
+        meta_line = self.doc_info_reader.readline()
+        while meta_line != "":
+            (doc_title, doc_id, offset, size, count) = Document.parse_meta(meta_line)
+            if title == doc_title:
+                self.term_stream.seek(offset)
+                return Document(title, doc_id, count, self.decoder, self.lexicon)
+            meta_line = self.doc_info_reader.readline()
+        return None
+
+    def find_by_id(self, id):
+        meta_line = self.doc_info_reader.readline()
+        while meta_line != "":
+            (title, doc_id, offset, size, count) = Document.parse_meta(meta_line)
+            if id == doc_id:
+                self.term_stream.seek(offset)
+                return Document(title, doc_id, count, self.decoder, self.lexicon)
+            meta_line = self.doc_info_reader.readline()
+        return None
+
     def skip(self, n):
         for i in range(n):
             meta_line = self.doc_info_reader.readline()
