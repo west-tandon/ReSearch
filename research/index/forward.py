@@ -25,16 +25,15 @@ class ForwardIndex:
         logger.info("Pruning index {0} with pruner {1}".format(self.metadata.name, type(term_pruner).__name__))
 
         logger.info("Processing term file")
-        with open(self.metadata.terms_path) as input_term_file:
-            with open(output_index.metadata.terms_path, "w") as output_term_file:
+        with open(self.metadata.terms_path) as input_term_file, \
+                open(output_index.metadata.terms_path, "w") as output_term_file:
+            def write_term(t):
+                output_term_file.write(t)
+                return 1
 
-                def write_term(t):
-                    output_term_file.write(t)
-                    return 1
-
-                offsets = [write_term(term) if term_pruner.test(term[:-1]) else 0 for term in input_term_file]
-                for i in range(1, len(offsets)):
-                    offsets[i] += offsets[i - 1]
+            offsets = [write_term(term) if term_pruner.test(term[:-1]) else 0 for term in input_term_file]
+            for i in range(1, len(offsets)):
+                offsets[i] += offsets[i - 1]
 
         logger.info("Pruning documents")
         reader = self.reader()
@@ -70,51 +69,39 @@ class ForwardIndexMetadata(Metadata):
     f_collection = "collection"
     f_terms = "terms"
 
+    def check_path(self, field):
+        if field not in self.paths:
+            raise_property_not_found(field)
+        else:
+            return self.paths[field]
+
     def __init__(self, properties):
         super(ForwardIndexMetadata, self).__init__(properties)
 
         assert properties[Metadata.f_type] == "{0}.{1}".format(ForwardIndex.__module__, ForwardIndex.__name__)
 
         if Metadata.f_coding not in properties:
-            self.coder_factory = research.coding.varbyte.Factory
+            self.coder_module = research.coding.varbyte
         else:
-            self.coder_factory = research.utils.get_class_of(properties[Metadata.f_coding]).Factory()
+            self.coder_module = research.utils.get_class_of(properties[Metadata.f_coding])
 
         if Metadata.f_path not in properties:
             raise_property_not_found(Metadata.f_path)
         else:
             self.paths = properties[Metadata.f_path]
 
-        if ForwardIndexMetadata.f_doc_info not in self.paths:
-            raise_property_not_found(ForwardIndexMetadata.f_doc_info)
-        else:
-            self.doc_info_path = self.paths[ForwardIndexMetadata.f_doc_info]
-
-        if ForwardIndexMetadata.f_collection not in self.paths:
-            raise_property_not_found(ForwardIndexMetadata.f_collection)
-        else:
-            self.collection_path = self.paths[ForwardIndexMetadata.f_collection]
-
-        if ForwardIndexMetadata.f_terms not in self.paths:
-            raise_property_not_found(ForwardIndexMetadata.f_terms)
-        else:
-            self.terms_path = self.paths[ForwardIndexMetadata.f_terms]
+        self.doc_info_path = self.check_path(ForwardIndexMetadata.f_doc_info)
+        self.collection_path = self.check_path(ForwardIndexMetadata.f_collection)
+        self.terms_path = self.check_path(ForwardIndexMetadata.f_terms)
 
 
 class ForwardIndexReader:
     def __init__(self, metadata):
         self.doc_info_reader = io.open(metadata.doc_info_path, 'r')
         self.term_stream = io.open(metadata.collection_path, 'br')
-        self.decoder = metadata.coder_factory.decoder(self.term_stream)
+        self.decoder = metadata.coder_module.Decoder(self.term_stream)
         self.lexicon = ArrayLexicon(metadata.terms_path)
         self.last_doc = None
-
-    @staticmethod
-    def parse_meta(meta_line):
-        fields = meta_line.split()
-        if len(fields) != 5:
-            raise ValueError("expected 5 fields in document meta file, but %d found" % len(fields))
-        return fields[0], int(fields[1]), int(fields[2]), int(fields[3]), int(fields[4])
 
     def next_document(self):
         if self.last_doc is not None:
@@ -163,7 +150,7 @@ class ForwardIndexWriter:
     def __init__(self, metadata):
         self.doc_info_writer = io.open(metadata.doc_info_path, 'w')
         self.term_stream = io.open(metadata.collection_path, 'bw')
-        self.encoder = metadata.coder_factory.encoder(self.term_stream)
+        self.encoder = metadata.coder_module.Encoder(self.term_stream)
 
     def write_term_id(self, n):
         return self.encoder.encode(n)

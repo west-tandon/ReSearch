@@ -28,13 +28,3 @@ class Encoder:
 
     def encode(self, x):
         self.stream.write(struct.pack('d', x))
-
-
-class Factory:
-    @staticmethod
-    def encoder(stream):
-        return Encoder(stream)
-
-    @staticmethod
-    def decoder(stream):
-        return Decoder(stream)
