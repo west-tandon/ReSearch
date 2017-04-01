@@ -36,13 +36,3 @@ class Encoder:
         buffer[7] ^= 0b10000000
         self.stream.write(buffer[p:])
         return 8 - p
-
-
-class Factory:
-    @staticmethod
-    def encoder(stream):
-        return Encoder(stream)
-
-    @staticmethod
-    def decoder(stream):
-        return Decoder(stream)
