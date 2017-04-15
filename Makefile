@@ -6,15 +6,17 @@ PEEK=rspeek
 FLIP=rsflip
 READD=rsreadd
 FINDD=rsfindd
+QPQT=qpqt
 
 build: *
-	virtualenv -p /usr/bin/python3 $(VENV_DIR)
-	$(VENV_DIR)/bin/python setup.py install
+	rm -rf ./env
+	conda create --yes -p ./env python=3.6 nltk numpy pandas cython llvmlite numba thriftpy=0.3.9
+	./env/bin/python setup.py install
 
 .PHONY: install
 install:
 	mkdir -p $(INSTALL_DIR)
-	cp -r $(VENV_DIR)/* $(INSTALL_DIR)
+	cp -r env/* $(INSTALL_DIR)
 	cp bin/* $(INSTALL_DIR)/bin
 	# rspeek
 	echo "$(INSTALL_DIR)/bin/python $(INSTALL_DIR)/bin/peek.py \$$@" > $(BIN)/$(PEEK)
@@ -28,12 +30,15 @@ install:
 	# rsreadd
 	echo "$(INSTALL_DIR)/bin/python $(INSTALL_DIR)/bin/findd.py \$$@" > $(BIN)/$(FINDD)
 	chmod a+x $(BIN)/$(FINDD)
+	# qpqt
+	echo "$(INSTALL_DIR)/bin/python $(INSTALL_DIR)/bin/qpqt.py \$$@" > $(BIN)/$(QPQT)
+	chmod a+x $(BIN)/$(QPQT)
 
 .PHONY: uninstall
 uninstall:
 	rm -rf $(INSTALL_DIR)
-	rm -f $(BIN)/$(PEEK) $(BIN)/$(FLIP) $(BIN)/$(READD)
+	rm -f $(BIN)/$(PEEK) $(BIN)/$(FLIP) $(BIN)/$(READD) $(BIN)/$(FINDD) $(BIN)/$(QPQT)
 	
 .PHONY: clean
 clean:
-	rm -rf venv build ReSearch.egg-info
+	rm -rf env build ReSearch.egg-info

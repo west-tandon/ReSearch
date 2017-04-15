@@ -6,5 +6,6 @@ research/__pycache__/
 research/coding/__pycache__/
 research/index/__pycache__/
 venv/
+env/
 ReSearch.egg-info/
 *.so

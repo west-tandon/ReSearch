@@ -14,5 +14,9 @@ setup(name='ReSearch',
           'importlib',
           'nltk',
           'numpy',
-          'bitstring'
+          'bitstring',
+          'pandas',
+          'Cython',
+          'fastparquet',
+          'python-snappy'
       ])
