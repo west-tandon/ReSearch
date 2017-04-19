@@ -18,5 +18,6 @@ setup(name='ReSearch',
           'pandas',
           'Cython',
           'fastparquet',
-          'python-snappy'
+          'python-snappy',
+          'pandasql'
       ])
