@@ -8,6 +8,7 @@ READD=rsreadd
 FINDD=rsfindd
 QPQT=qpqt
 PDSQL=pdsql
+PQTUNION=parquet-union
 
 build: *
 	rm -rf ./env
@@ -38,6 +39,10 @@ install:
 	echo "#!$(INSTALL_DIR)/bin/python" > $(BIN)/$(PDSQL)
 	cat $(INSTALL_DIR)/bin/pdsql.py >> $(BIN)/$(PDSQL)
 	chmod a+x $(BIN)/$(PDSQL)
+	# parquet-union
+	echo "#!$(INSTALL_DIR)/bin/python" > $(BIN)/$(PQTUNION)
+	cat $(INSTALL_DIR)/bin/pdsql.py >> $(BIN)/$(PQTUNION)
+	chmod a+x $(BIN)/$(PQTUNION)
 
 .PHONY: uninstall
 uninstall:
