@@ -1,7 +1,6 @@
 import argparse
-import pandas as pd
+
 from fastparquet import ParquetFile
-import numpy as np
 
 
 def parse_condition(df, condition):
